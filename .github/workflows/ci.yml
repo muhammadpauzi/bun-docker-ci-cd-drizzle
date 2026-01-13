@@ -83,13 +83,13 @@ jobs:
             mkdir -p ~/app
             cd ~/app
 
-            # Membuat file .env secara otomatis
-            echo "DB_USER=${{ secrets.DB_USER }}" > .env
-            echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
-            echo "DB_NAME=${{ secrets.DB_NAME }}" >> .env
+            # Gunakan kutip tunggal untuk keamanan karakter khusus
+            echo "DB_USER='${{ secrets.DB_USER }}'" > .env
+            echo "DB_PASSWORD='${{ secrets.DB_PASSWORD }}'" >> .env
+            echo "DB_NAME='${{ secrets.DB_NAME }}'" >> .env
             echo "DB_HOST=db" >> .env
             echo "DB_PORT=5432" >> .env
-            echo "DATABASE_URL=postgres://${{ secrets.DB_USER }}:${{ secrets.DB_PASSWORD }}@db:5432/${{ secrets.DB_NAME }}" >> .env
+            echo "DATABASE_URL='postgres://${{ secrets.DB_USER }}:${{ secrets.DB_PASSWORD }}@db:5432/${{ secrets.DB_NAME }}'" >> .env
             echo "NODE_ENV=production" >> .env
 
             # Login Docker di VPS (Menggunakan GITHUB_TOKEN agar otomatis)
