@@ -1,0 +1,26 @@
+{
+  "name": "letsee",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "db:generate": "drizzle-kit generate",
+    "db:seed": "bun run src/seed.ts",
+    "db:migrate": "bun run src/migrate.ts",
+    "start:api": "bun run src/index.ts",
+    "start:worker": "bun run src/worker.ts",
+    "dev:api": "bun run --watch src/index.ts",
+    "dev:worker": "bun run --watch src/worker.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "drizzle-kit": "^0.31.8"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@faker-js/faker": "^10.2.0",
+    "drizzle-orm": "^0.45.1"
+  }
+}
