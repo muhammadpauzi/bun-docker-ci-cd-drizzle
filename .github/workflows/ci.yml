@@ -55,6 +55,7 @@ jobs:
     #       docker push ghcr.io/muhammadpauzi/bun_api:latest
 
   deploy:
+    name: Deploy to VPS
     needs: build_and_publish
     runs-on: ubuntu-latest
     steps:

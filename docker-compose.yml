@@ -37,7 +37,7 @@ services:
                     memory: 200M
 
     migration:
-        build: ghcr.io/muhammadpauzi/bun-api:latest
+        image: ghcr.io/muhammadpauzi/bun-api:latest
         pull_policy: always  # Memastikan Docker selalu mengecek versi terbaru di GHCR
         container_name: bun_migration
         env_file: .env
@@ -50,7 +50,7 @@ services:
             - main_net
 
     api:
-        build: ghcr.io/muhammadpauzi/bun-api:latest
+        image: ghcr.io/muhammadpauzi/bun-api:latest
         pull_policy: always  # Memastikan Docker selalu mengecek versi terbaru di GHCR
         container_name: bun_api
         restart: always
@@ -69,7 +69,7 @@ services:
                     memory: 300M
 
     worker:
-        build: ghcr.io/muhammadpauzi/bun-api:latest
+        image: ghcr.io/muhammadpauzi/bun-api:latest
         pull_policy: always  # Memastikan Docker selalu mengecek versi terbaru di GHCR
         container_name: bun_worker
         restart: always
