@@ -1,11 +1,34 @@
 import { migrate } from "drizzle-orm/bun-sql/migrator";
-import { db } from "./db";
-import type { MigrationConfig } from "drizzle-orm/migrator";
+import { db, client } from "./db";
 
-const migrationConfig: MigrationConfig = {
-  migrationsFolder: "./drizzle",
-};
+async function runMigration() {
+  // ID unik untuk lock migrasi kita (angka sembarang)
+  const MIGRATION_LOCK_ID = 123;
 
-//Execute Migrations
-const migratation = async () => await migrate(db, migrationConfig);
-migratation();
+  try {
+    console.log("🔒 Mencoba mendapatkan lock migrasi...");
+
+    // 1. Dapatkan Lock (Mencegah dua proses migrasi berjalan bersamaan)
+    // pg_advisory_xact_lock akan otomatis lepas saat transaksi/koneksi selesai
+    await client`SELECT pg_advisory_lock(${MIGRATION_LOCK_ID})`;
+    console.log("🔐 Lock didapatkan. Memulai migrasi...");
+
+    // 2. Eksekusi Migrasi
+    await migrate(db, { migrationsFolder: "./drizzle" });
+
+    console.log("✅ Migrasi selesai dengan sukses!");
+  } catch (error) {
+    console.error("❌ Terjadi kesalahan saat migrasi:");
+    console.error(error);
+
+    // Keluar dengan kode error agar Docker tahu ini gagal
+    process.exit(1);
+  } finally {
+    // 3. Lepas Lock dan Tutup Koneksi
+    await client`SELECT pg_advisory_unlock(${MIGRATION_LOCK_ID})`;
+    await client.close();
+    console.log("👋 Koneksi ditutup.");
+  }
+}
+
+runMigration();

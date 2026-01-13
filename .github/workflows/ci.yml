@@ -1,0 +1,70 @@
+name: CI (Test) & CD (Build Image and publish to Docker Hub)
+
+on: [workflow_dispatch]
+# on:
+  # push:
+    # branches: [ main ]
+
+jobs:
+  test:
+      name: Lint, Test, and Build
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v4
+        - uses: oven-sh/setup-bun@v2
+          with:
+            bun-version: latest
+        - name: Install Dependencies
+          run: bun install --frozen-lockfile
+        - name: Type Check
+          run: bunx tsc --noEmit
+        - name: Run Tests
+          run: bun test
+
+  build_and_publish:
+    needs: test
+    runs-on: ubuntu-latest
+    # WAJIB: Izin untuk menulis ke GitHub Packages
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          # Gunakan huruf kecil semua untuk nama image (GHCR mewajibkan lowercase)
+          tags: ghcr.io/muhammadpauzi/bun-api:latest
+    # steps:
+    #   - uses: docker/login-action
+    #   - name: Build and push the Image
+    #     run: |
+    #       docker login --username muhammadpauzi --password ${{ secrets.ACCESS_TOKEN }} ghcr.io
+    #       docker build . -t ghcr.io/muhammadpauzi/bun_api:latest
+    #       docker push ghcr.io/muhammadpauzi/bun_api:latest
+
+  # deploy:
+  #   needs: build_and_publish
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Deploy to VPS via SSH
+  #       uses: appleboy/ssh-action@master
+  #       with:
+  #         host: ${{ secrets.HOST }}
+  #         username: ${{ secrets.USER }}
+  #         key: ${{ secrets.SSH_PRIVATE_KEY }}
+  #         script: |
+  #           cd ~/path-ke-project
+  #           docker compose pull api
+  #           docker compose up -d

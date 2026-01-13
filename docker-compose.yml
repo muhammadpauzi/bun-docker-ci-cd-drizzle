@@ -36,6 +36,18 @@ services:
                 limits:
                     memory: 200M
 
+    migration:
+        build: .
+        container_name: bun_migration
+        env_file: .env
+        depends_on:
+            db:
+                condition: service_healthy
+        # Hanya jalankan script migrasi lalu mati (exit)
+        command: ["bun", "run", "src/migrate.ts"]
+        networks:
+            - main_net
+
     api:
         build: .
         container_name: bun_api
@@ -44,6 +56,8 @@ services:
         depends_on:
             db:
                 condition: service_healthy
+            migration:
+                condition: service_completed_successfully
         networks:
             - main_net
         stop_grace_period: 30s
