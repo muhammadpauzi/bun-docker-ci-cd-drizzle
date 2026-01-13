@@ -22,7 +22,7 @@ services:
         deploy:
             resources:
               limits:
-                memory: "1000M"
+                memory: "800M"
 
     redis:
         image: redis:7-alpine
@@ -37,7 +37,8 @@ services:
                     memory: 200M
 
     migration:
-        build: .
+        build: ghcr.io/muhammadpauzi/bun-api:latest
+        pull_policy: always  # Memastikan Docker selalu mengecek versi terbaru di GHCR
         container_name: bun_migration
         env_file: .env
         depends_on:
@@ -49,7 +50,8 @@ services:
             - main_net
 
     api:
-        build: .
+        build: ghcr.io/muhammadpauzi/bun-api:latest
+        pull_policy: always  # Memastikan Docker selalu mengecek versi terbaru di GHCR
         container_name: bun_api
         restart: always
         env_file: .env
@@ -67,7 +69,8 @@ services:
                     memory: 300M
 
     worker:
-        build: .
+        build: ghcr.io/muhammadpauzi/bun-api:latest
+        pull_policy: always  # Memastikan Docker selalu mengecek versi terbaru di GHCR
         container_name: bun_worker
         restart: always
         command: ["bun", "run", "src/worker.ts"] # timpa

@@ -22,6 +22,7 @@ jobs:
           run: bun test
 
   build_and_publish:
+    name: Build and Publish the Image
     needs: test
     runs-on: ubuntu-latest
     # WAJIB: Izin untuk menulis ke GitHub Packages
@@ -53,18 +54,49 @@ jobs:
     #       docker build . -t ghcr.io/muhammadpauzi/bun_api:latest
     #       docker push ghcr.io/muhammadpauzi/bun_api:latest
 
-  # deploy:
-  #   needs: build_and_publish
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - name: Deploy to VPS via SSH
-  #       uses: appleboy/ssh-action@master
-  #       with:
-  #         host: ${{ secrets.HOST }}
-  #         username: ${{ secrets.USER }}
-  #         key: ${{ secrets.SSH_PRIVATE_KEY }}
-  #         script: |
-  #           cd ~/path-ke-project
-  #           docker compose pull api
-  #           docker compose up -d
+  deploy:
+    needs: build_and_publish
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # 1. Kirim file docker-compose.yml dan folder nginx ke VPS
+      - name: Copy Config Files to VPS
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "docker-compose.yml,nginx/default.conf"
+          target: "~/app"
+
+      # 2. Eksekusi perintah di VPS (Buat .env dan Restart Docker)
+      - name: Execute Remote SSH Commands
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            mkdir -p ~/app
+            cd ~/app
+
+            # Membuat file .env secara otomatis
+            echo "DB_USER=${{ secrets.DB_USER }}" > .env
+            echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
+            echo "DB_NAME=${{ secrets.DB_NAME }}" >> .env
+            echo "DB_HOST=db" >> .env
+            echo "DB_PORT=5432" >> .env
+            echo "DATABASE_URL=postgres://${{ secrets.DB_USER }}:${{ secrets.DB_PASSWORD }}@db:5432/${{ secrets.DB_NAME }}" >> .env
+            echo "NODE_ENV=production" >> .env
+
+            # Login Docker di VPS (Menggunakan GITHUB_TOKEN agar otomatis)
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
+
+            # Jalankan aplikasi
+            docker compose pull
+            docker compose up -d
+            
+            # Opsional: Bersihkan image lama yang tidak terpakai agar disk tidak penuh
+            docker image prune -f
