@@ -1,0 +1,1 @@
+ALTER TABLE "questions" ADD CONSTRAINT "questions_question_category_id_question_categories_id_fkey" FOREIGN KEY ("question_category_id") REFERENCES "question_categories"("id");

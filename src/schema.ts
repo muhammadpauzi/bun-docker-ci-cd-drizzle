@@ -13,9 +13,19 @@ const timestamps = {
   updated_at: t.timestamp().defaultNow().notNull(),
 };
 
-export const questionsTable = t.pgTable("questions", {
-  id: t.char({ length: 36 }).primaryKey(),
+export const questionCategories = t.pgTable("question_categories", {
+  id: t.uuid().primaryKey(),
+  name: t.varchar().notNull().unique(),
+  ...timestamps,
+});
+
+export const questions = t.pgTable("questions", {
+  id: t.uuid().primaryKey(),
   content: t.varchar().notNull(),
   type: t.varchar().notNull().$type<QuestionType>(),
+  questionCategoryId: t
+    .uuid("question_category_id")
+    .notNull()
+    .references(() => questionCategories.id, { onDelete: "restrict" }),
   ...timestamps,
 });
