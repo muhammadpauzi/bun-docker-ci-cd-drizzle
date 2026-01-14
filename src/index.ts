@@ -1,6 +1,7 @@
+import { desc, eq, sql } from "drizzle-orm";
 import { db } from "./db";
 import index from "./index.html";
-import { questionsTable } from "./schema";
+import { questionCategories, questions } from "./schema";
 
 export const server = Bun.serve({
   port: 3000,
@@ -9,7 +10,25 @@ export const server = Bun.serve({
     "/*": index,
     "/api/questions": async () =>
       Response.json({
-        data: await db.select().from(questionsTable).offset(2000).limit(100),
+        data: await db
+          .select({
+            id: questions.id,
+            content: questions.content,
+            type: questions.type,
+            createdAt: questions.createdAt,
+            updatedAt: questions.updatedAt,
+            questionCategory: {
+              id: questionCategories.id,
+              name: questionCategories.name,
+            },
+          })
+          .from(questions)
+          .leftJoin(
+            questionCategories,
+            eq(questions.questionCategoryId, questionCategories.id)
+          )
+          .orderBy(desc(questions.createdAt))
+          .limit(50),
       }),
     "/api/status": Response.json({
       message: "OK",

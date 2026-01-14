@@ -9,8 +9,8 @@ export const QuestionTypes = {
 export type QuestionType = (typeof QuestionTypes)[keyof typeof QuestionTypes];
 
 const timestamps = {
-  created_at: t.timestamp().defaultNow().notNull(),
-  updated_at: t.timestamp().defaultNow().notNull(),
+  createdAt: t.timestamp("created_at").defaultNow().notNull(),
+  updatedAt: t.timestamp("updated_at").defaultNow().notNull(),
 };
 
 export const questionCategories = t.pgTable("question_categories", {
@@ -19,13 +19,20 @@ export const questionCategories = t.pgTable("question_categories", {
   ...timestamps,
 });
 
-export const questions = t.pgTable("questions", {
-  id: t.uuid().primaryKey(),
-  content: t.varchar().notNull(),
-  type: t.varchar().notNull().$type<QuestionType>(),
-  questionCategoryId: t
-    .uuid("question_category_id")
-    .notNull()
-    .references(() => questionCategories.id, { onDelete: "restrict" }),
-  ...timestamps,
-});
+export const questions = t.pgTable(
+  "questions",
+  {
+    id: t.uuid().primaryKey(),
+    content: t.varchar().notNull(),
+    type: t.varchar().notNull().$type<QuestionType>(),
+    questionCategoryId: t
+      .uuid("question_category_id")
+      .notNull()
+      .references(() => questionCategories.id, { onDelete: "restrict" }),
+    ...timestamps,
+  },
+  (self) => [
+    t.index("idx_created_at").on(self.createdAt.desc()),
+    t.index("idx_questions_category_id").on(self.questionCategoryId),
+  ]
+);

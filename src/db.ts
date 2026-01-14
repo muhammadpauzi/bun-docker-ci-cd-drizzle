@@ -26,4 +26,4 @@ const relations = defineRelations(
   })
 );
 
-export const db = drizzle({ client, schema, relations });
+export const db = drizzle({ client, schema, relations, logger: true });

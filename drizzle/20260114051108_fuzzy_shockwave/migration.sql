@@ -1,0 +1,1 @@
+CREATE INDEX "idx_questions_category_id" ON "questions" ("question_category_id");
